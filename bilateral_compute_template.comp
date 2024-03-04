@@ -3,7 +3,7 @@
 layout(constant_id = 0) const int WORK_GROUP_AXIS_SIZE = 16;
 layout(constant_id = 1) const int WINDOW_R = 1;
 
-layout(local_size_x = WORK_GROUP_AXIS_SIZE, local_size_y = WORK_GROUP_AXIS_SIZE) in;
+layout(local_size_x_id = 0, local_size_y_id = 0, local_size_z = 1) in;
 
 layout(push_constant) uniform params_t
 {
