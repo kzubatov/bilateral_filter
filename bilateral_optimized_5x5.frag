@@ -18,7 +18,6 @@ layout(push_constant) uniform params_t
 
 void main()
 {
-#if defined(USE_NINE_REG)
     vec2 t = vec2(ivec2(gl_FragCoord.xy) & 1) * -2.0 + 1.0;
 
     vec3 texels[9];
@@ -35,6 +34,7 @@ void main()
     vec3 central = texels[4];
     central += dFdxFine(central) * t.x;
     vec4 color_and_w = vec4(0); 
+    float texel_w;
     
     texel_w = exp(5.0 * params.gaussian_divisor + dot(texels[1] - central, texels[1] - central) * params.intensities_divisor);
     color_and_w += vec4(texels[1] * texel_w, texel_w);
@@ -55,7 +55,7 @@ void main()
     color_and_w += vec4(texels[8] * texel_w, texel_w);
 
     color_and_w += dFdyFine(color_and_w) * t.y;
-    central += dFdyFine(color_and_w) * t.y;
+    central += dFdyFine(central) * t.y;
 
     texel_w = exp(2.0 * params.gaussian_divisor + dot(texels[4] - central, texels[4] - central) * params.intensities_divisor);
     color_and_w += vec4(texels[4] * texel_w, texel_w);
@@ -70,7 +70,7 @@ void main()
     color_and_w += vec4(texels[8] * texel_w, texel_w);
 
     color_and_w += dFdxFine(color_and_w) * t.x;
-    central += dFdxFine(color_and_w) * t.x;
+    central += dFdxFine(central) * t.x;
 
     texel_w = exp(5.0 * params.gaussian_divisor + dot(texels[3] - central, texels[3] - central) * params.intensities_divisor);
     color_and_w += vec4(texels[3] * texel_w, texel_w);
@@ -120,112 +120,4 @@ void main()
     color_and_w += vec4(texels[8] * texel_w, texel_w);
 
     color = vec4(color_and_w.xyz / color_and_w.w, 1.0);
-
-#elif defined(USE_ONE_REG)
-    vec2 t = vec2(ivec2(gl_FragCoord.xy) & 1) * -2.0 + 1.0;
-    
-    vec3 texel = textureLod(colorTex, texCoord, 0).rgb;
-    vec3 central = texel;
-
-    vec3 sum = central;
-    float sum_w = 1.0, texel_w;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(2.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2(-2, -2) * t, 0).rgb;
-    sum_w += texel_w = exp(8.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2( 0, -2) * t, 0).rgb;
-    sum_w += texel_w = exp(4.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2( 2, -2) * t, 0).rgb;
-    sum_w += texel_w = exp(8.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2( -2, 0) * t, 0).rgb;
-    sum_w += texel_w = exp(4.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2(  2, 0) * t, 0).rgb;
-    sum_w += texel_w = exp(4.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(2.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2( -2, 2) * t, 0).rgb;
-    sum_w += texel_w = exp(8.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2(  0, 2) * t, 0).rgb;
-    sum_w += texel_w = exp(4.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(2.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel = textureLod(colorTex, texCoord + params.offset * vec2(  2, 2) * t, 0).rgb;
-    sum_w += texel_w = exp(8.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdyFine(texel) * t.y;
-    sum_w += texel_w = exp(2.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    texel += dFdxFine(texel) * t.x;
-    sum_w += texel_w = exp(5.0 * params.gaussian_divisor + dot(texel - central, texel - central) * params.intensities_divisor);
-    sum += texel_w * texel;
-
-    color = vec4(sum / sum_w, 1.0);
-#endif
 }
