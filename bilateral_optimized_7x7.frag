@@ -196,5 +196,5 @@ void main()
 
     color_and_w += dFdxFine(color_and_w) * t.x;
 
-    color = vec4(color_and_w.xyz / color_and_w.w, 1.0);
+    color = color_and_w / color_and_w.w;
 }

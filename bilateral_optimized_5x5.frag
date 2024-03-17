@@ -119,5 +119,5 @@ void main()
     texel_w = exp(8.0 * params.gaussian_divisor + dot(texels[8] - central, texels[8] - central) * params.intensities_divisor);
     color_and_w += vec4(texels[8] * texel_w, texel_w);
 
-    color = vec4(color_and_w.xyz / color_and_w.w, 1.0);
+    color = color_and_w / color_and_w.w;
 }
